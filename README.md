@@ -23,13 +23,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require --prefer-dist chrmorandi/yii2-ldap
+php composer.phar require --prefer-dist factorenergia/yii2-ldap
 ```
 
 or add
 
 ```json
-"chrmorandi/yii2-ldap": "*"
+"factorenergia/yii2-ldap": "*"
 ```
 
 to the require section of your composer.json.
@@ -41,7 +41,7 @@ return [
     //....
     'components' => [
         'ldap' => [
-            'class' => 'chrmorandi\ldap\Connection',
+            'class' => 'factorenergia\ldap\Connection',
             // Mandatory Configuration Options
             'dc' => [
                 '192.168.1.1',
