@@ -1,13 +1,13 @@
 {
-    "name": "chrmorandi/yii2-ldap",
+    "name": "factorenergia/yii2-ldap",
     "description": "Ldap",
     "type": "library",
     "keywords": ["yii2", "extension", "ldap", "Active Directory", "OpenLDAP"],
     "license": "MIT",
     "authors": [
         {
-            "name": "Christopher Mota",
-            "email": "chrmorandi@gmail.com"
+            "name": "Factor Energia",
+            "email": "ahuertas@factorenergia.com"
         }
     ],
     "require": {
@@ -27,7 +27,7 @@
     },
     "autoload": {
         "psr-4": {
-            "chrmorandi\\ldap\\": ""
+            "factorenergia\\ldap\\": ""
         }
     }
 }
