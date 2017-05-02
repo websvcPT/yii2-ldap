@@ -252,7 +252,7 @@ class Connection extends Component
         $this->connect($this->dc, $this->port);
 
         // Authenticate user
-        return ldap_bind($this->resource, $this->userDN, $password);
+        return @ldap_bind($this->resource, $this->userDN, $password);
     }
     
     /**
