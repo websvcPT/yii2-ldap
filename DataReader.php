@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace chrmorandi\ldap;
+namespace factorenergia\ldap;
 
 use Countable;
 use Iterator;

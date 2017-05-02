@@ -6,7 +6,7 @@
  * @license   MIT License - view the LICENSE file that was distributed with this source code.
  */
 
-namespace chrmorandi\ldap;
+namespace factorenergia\ldap;
 
 use chrmorandi\ldap\ActiveRecord;
 use chrmorandi\ldap\Connection;
