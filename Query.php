@@ -6,9 +6,9 @@
  * @license   Mit License - view the LICENSE file that was distributed with this source code.
  */
 
-namespace factorenergia\ldap;
+namespace websvc\ldap;
 
-use chrmorandi\ldap\Connection;
+use websvc\ldap\Connection;
 use Yii;
 use yii\base\Component;
 use yii\base\InvalidValueException;

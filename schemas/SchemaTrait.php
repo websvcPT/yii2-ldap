@@ -6,7 +6,7 @@
  * @license   MIT License - view the LICENSE file that was distributed with this source code.
  */
 
-namespace chrmorandi\ldap\schemas;
+namespace websvc\ldap\schemas;
 
 use ReflectionClass;
 use ReflectionProperty;

@@ -6,7 +6,7 @@
  * @license   MIT License - view the LICENSE file that was distributed with this source code.
  */
 
-namespace factorenergia\ldap;
+namespace websvc\ldap;
 
 use Yii;
 use yii\base\Component;
@@ -330,9 +330,9 @@ class Connection extends Component
         $cookie = '';        
         $token = $function . ' - params: ' . LdapUtils::recursive_implode($params, ';');
 
-        Yii::info($token , 'chrmorandi\ldap\Connection::query');
+        Yii::info($token , 'websvc\ldap\Connection::query');
        
-        Yii::beginProfile($token, 'chrmorandi\ldap\Connection::query');
+        Yii::beginProfile($token, 'websvc\ldap\Connection::query');
         do {
             if($this->pageSize > 0) {
                 $this->setControlPagedResult($cookie);
@@ -348,7 +348,7 @@ class Connection extends Component
             //Collect each resource result
             $results[] = $result;            
         } while (!is_null($cookie) && !empty($cookie));
-        Yii::endProfile($token, 'chrmorandi\ldap\Connection::query');
+        Yii::endProfile($token, 'websvc\ldap\Connection::query');
 
         return new DataReader($this, $results);
     }

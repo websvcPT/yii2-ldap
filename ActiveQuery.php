@@ -6,11 +6,11 @@
  * @license   MIT License - view the LICENSE file that was distributed with this source code.
  */
 
-namespace factorenergia\ldap;
+namespace websvc\ldap;
 
-use chrmorandi\ldap\ActiveRecord;
-use chrmorandi\ldap\Connection;
-use chrmorandi\ldap\query\QueryBuilder;
+use websvc\ldap\ActiveRecord;
+use websvc\ldap\Connection;
+use websvc\ldap\query\QueryBuilder;
 use yii\db\ActiveQueryInterface;
 use yii\db\ActiveQueryTrait;
 use yii\db\ActiveRelationTrait;

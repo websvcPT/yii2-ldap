@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace factorenergia\ldap;
+namespace websvc\ldap;
 
 use Countable;
 use Iterator;

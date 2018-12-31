@@ -6,10 +6,10 @@
  * @license   MIT License - view the LICENSE file that was distributed with this source code.
  */
 
-namespace factorenergia\ldap;
+namespace websvc\ldap;
 
-use chrmorandi\ldap\ActiveQuery;
-use chrmorandi\ldap\Connection;
+use websvc\ldap\ActiveQuery;
+use websvc\ldap\Connection;
 use Exception;
 use Yii;
 use yii\db\BaseActiveRecord;
@@ -25,7 +25,7 @@ use yii\db\BaseActiveRecord;
  * The following is an example model called `User`:
  *
  * ```php
- * class User extends \chrmorandi\ldap\ActiveRecord
+ * class User extends \websvc\ldap\ActiveRecord
  * {
  *     public function attributes()
  *     {
@@ -37,7 +37,7 @@ use yii\db\BaseActiveRecord;
  *
  * ```php
  * public function attributes() {
- *     return \chrmorandi\ldap\schemas\ADUser::getAttributes();
+ *     return \websvc\ldap\schemas\ADUser::getAttributes();
  * }
  * ```
  *

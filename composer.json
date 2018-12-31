@@ -1,13 +1,21 @@
 {
-    "name": "factorenergia/yii2-ldap",
+    "name": "websvc/yii2-ldap",
     "description": "Ldap",
     "type": "library",
     "keywords": ["yii2", "extension", "ldap", "Active Directory", "OpenLDAP"],
     "license": "MIT",
     "authors": [
         {
+            "name": "Christopher Mota",
+            "email": "chrmorandi@gmail.com"
+        },
+        {
             "name": "Factor Energia",
             "email": "ahuertas@factorenergia.com"
+        },
+        {
+            "name": "Nelson Dias",
+            "homepage": "https://websvcpt.github.io/yii2-ldap/"
         }
     ],
     "require": {
@@ -27,7 +35,7 @@
     },
     "autoload": {
         "psr-4": {
-            "factorenergia\\ldap\\": ""
+            "websvc\\ldap\\": ""
         }
     }
 }

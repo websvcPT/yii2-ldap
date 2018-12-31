@@ -5,6 +5,13 @@ This extension provides the LDAP integration for the Yii framework 2.0.
 It includes basic querying/search support and also implements the ActiveRecord 
 pattern that allows you to store active records in Active Directory or OpenLDAP.
 
+## Disclaimer
+
+This is a fork of https://github.com/chrmorandi/yii2-ldap
+
+Only to have some maintainability over the code and have a production release of the composer package
+
+
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/chrmorandi/yii2-ldap/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/chrmorandi/yii2-ldap/?branch=master)
 
 Requirements
@@ -23,13 +30,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require --prefer-dist factorenergia/yii2-ldap
+php composer.phar require --prefer-dist websvc/yii2-ldap
 ```
 
 or add
 
 ```json
-"factorenergia/yii2-ldap": "*"
+"websvc/yii2-ldap": "*"
 ```
 
 to the require section of your composer.json.
@@ -41,7 +48,7 @@ return [
     //....
     'components' => [
         'ldap' => [
-            'class' => 'factorenergia\ldap\Connection',
+            'class' => 'websvc\ldap\Connection',
             // Mandatory Configuration Options
             'dc' => [
                 '192.168.1.1',
@@ -58,6 +65,8 @@ return [
             // with large result sets:
             // ldap_search(): Partial search results returned: Sizelimit exceeded
             'pageSize'        => -1,
+            // Change the attribute to use for login
+            //'loginAttribute'        => 'uid',
         ],
     ]
 ];
