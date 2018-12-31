@@ -131,7 +131,14 @@ class Connection extends Component
      * @var string 
      */
     protected $userDN;
-    
+
+    /**
+     * @var array with attributes of an entry, for when doing searches or retrieve data
+     * @author WebsvcPT
+     * @since 1.0.3
+     */
+    public $dnAttributes = ['*'];
+
     # Create AD password (Microsoft Active Directory password format)
     protected static function encodePassword($password) {
         $password = "\"" . $password . "\"";
@@ -240,8 +247,12 @@ class Connection extends Component
         $this->open();
         
         # Search for user and get user DN
-        $searchResult = ldap_search($this->resource, $this->baseDn, "(&(objectClass=person)($this->loginAttribute=$username))", [$this->loginAttribute]);
-        $entry = $this->getFirstEntry($searchResult);
+        $searchResult = ldap_search(
+            $this->resource,
+            $this->baseDn,
+            "(&(objectClass=person)($this->loginAttribute=$username))",
+            [$this->loginAttribute]
+        );        $entry = $this->getFirstEntry($searchResult);
         if($entry) {
             $this->userDN = $this->getDn($entry);        
         } else {
@@ -254,7 +265,41 @@ class Connection extends Component
         // Authenticate user
         return @ldap_bind($this->resource, $this->userDN, $password);
     }
-    
+
+    /**
+     * Reads a used record as array
+     * @return array
+     * @author WebsvcPT
+     * @since 1.0.3
+     */
+    public function readUserData(){
+
+        $data = [];
+        try{
+
+            $entryRead = ldap_read(
+                $this->resource,
+                $this->userDN,
+                "(&(objectClass=person))",
+                $this->dnAttributes
+            );
+
+            // This is a bad way to do this
+            // Should used the count intead
+            $result = $this->getEntries($entryRead);
+            if($result['count']==1){
+                foreach ($result[0] as $key => $value) {
+                    if( !is_numeric($key) ){
+                        $data[$key]=$this->getElementValue($value);
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            // Not trowing errors here...
+        }
+        return $data;
+    }
+
     /**
      * Change the password of the current user. This must be performed over TLS.
      * @param string $username User for change password
