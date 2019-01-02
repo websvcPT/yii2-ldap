@@ -301,6 +301,22 @@ class Connection extends Component
     }
 
     /**
+     * Returns the string value of an element. 
+     * Elements are generally a one key array, this will retrieve the first key only
+     *
+     * @param string|array $value
+     *
+     * @return string
+     */
+    private function getElementValue($value){
+        if(is_array($value)){
+            return $value[0];
+        }
+
+        return $value;
+    }
+
+    /**
      * Change the password of the current user. This must be performed over TLS.
      * @param string $username User for change password
      * @param string $oldPassword The old password
