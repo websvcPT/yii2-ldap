@@ -81,7 +81,7 @@ return [
 ];
 ```
 
-### Authente User
+### Authenticate User
 
 To authenticate users using your AD server, call the `Yii::$app->ldap->auth()`
 method on your provider:
