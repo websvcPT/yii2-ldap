@@ -65,7 +65,7 @@ class Connection extends Component
      * @var array the domain controllers to connect to.
      */
     public $dc = [];
-    
+
     /**
      * @var string the username for establishing LDAP connection. Defaults to `null` meaning no username to use.
      */
@@ -75,18 +75,18 @@ class Connection extends Component
      * @var string the password for establishing DB connection. Defaults to `null` meaning no password to use.
      */
     public $password;
-    
+
     /**
      * @var int The page size for the paging operation.
      */
     public $pageSize = -1;
-    
+
     /**
      * @var integer zero-based offset from where the records are to be returned. If not set or
      * less than 1, it means not filter values.
      */
     public $offset = -1;
-    
+
     /**
      * @var boolean whether to enable caching.
      * Note that in order to enable query caching, a valid cache component as specified
@@ -96,7 +96,7 @@ class Connection extends Component
      * @see cache
      */
     public $enableCache = true;
-    
+
     /**
      * @var integer number of seconds that table metadata can remain valid in cache.
      * Use 0 to indicate that the cached data will never expire.
@@ -110,12 +110,12 @@ class Connection extends Component
      * @see enableCache
      */
     public $cache = 'cache';
-    
+
     /**
      * @var string the attribute for authentication
-     */    
+     */
     public $loginAttribute = "sAMAccountName";
-    
+
     /**
      * @var bool stores the bool whether or not the current connection is bound.
      */
@@ -125,10 +125,9 @@ class Connection extends Component
      * @var resource|false
      */
     protected $resource;
-    
+
     /**
-     *
-     * @var string 
+     * @var string User Distinguished Names (DN)
      */
     protected $userDN;
 
@@ -138,6 +137,25 @@ class Connection extends Component
      * @since 1.0.3
      */
     public $dnAttributes = ['*'];
+
+    /**
+     * Cn string used to validate access.
+     *
+     * Ex:
+     * `cn=restricted,ou=Groups`
+     *
+     * Will be concatenated with $baseDn
+     * `cn=restricted,ou=Groups,dc=domain,dc=local`
+     *
+     * @var string
+     * @author WebsvcPT
+     * @since 1.0.5
+     */
+    public $authAccess = [
+        'cn' => false,              // Cn name, will be concatenated with baseDn
+        'objectClass' => false,     // object class to search
+        'attributeMatch' => false,  // attribute to match user
+    ];
 
     # Create AD password (Microsoft Active Directory password format)
     protected static function encodePassword($password) {
@@ -173,7 +191,7 @@ class Connection extends Component
 
         return null;
     }
-    
+
     /**
      * Invalidates the cached data that are associated with any of the specified [[tags]] in this connection.
      * @param string|array $tags
@@ -219,11 +237,11 @@ class Connection extends Component
         if (is_array($hostname)) {
             $hostname = self::PROTOCOL.implode(' '.self::PROTOCOL, $hostname);
         }
-        
+
         $this->close();
         $this->resource = ldap_connect($hostname, $port);
 
-        // Set the LDAP options.     
+        // Set the LDAP options.
         $this->setOption(LDAP_OPT_PROTOCOL_VERSION, 3);
         $this->setOption(LDAP_OPT_REFERRALS, $this->followReferrals);
         $this->setOption(LDAP_OPT_NETWORK_TIMEOUT, 2);
@@ -234,27 +252,29 @@ class Connection extends Component
 
         $this->trigger(self::EVENT_AFTER_OPEN);
     }
-    
+
     /**
      * Authenticate user
      * @param string $username
      * @param string $password
-     * @return int indicate occurrence of error. 
+     * @return int indicate occurrence of error.
      */
     public function auth($username, $password)
     {
         // Open connection with manager
         $this->open();
-        
+
         # Search for user and get user DN
         $searchResult = ldap_search(
             $this->resource,
             $this->baseDn,
             "(&(objectClass=person)($this->loginAttribute=$username))",
             [$this->loginAttribute]
-        );        $entry = $this->getFirstEntry($searchResult);
+        );
+
+        $entry = $this->getFirstEntry($searchResult);
         if($entry) {
-            $this->userDN = $this->getDn($entry);        
+            $this->userDN = $this->getDn($entry);
         } else {
             $this->userDN = null;
         }
@@ -301,7 +321,75 @@ class Connection extends Component
     }
 
     /**
-     * Returns the string value of an element. 
+     * Checks if $username is present in configured app cn, objectClass.
+     *
+     * @param type $username
+     *
+     * @return boolean
+     * @throws \Exception
+     *
+     * @author WebsvcPT
+     * @since 1.0.5
+     */
+    public function checkUserAccess($username){
+
+        if(
+            $this->authAccess['cn'] != false
+            && $this->authAccess['objectClass'] != false
+            && $this->authAccess['attributeMatch'] != false
+        ){
+
+            // Open connection with manager
+            $this->open();
+
+            $authorized = false;
+            try{
+                # Search for user in Cn
+                $searchResult = ldap_read(
+                    $this->resource,
+                    $this->authAccess['cn'] . ',' . $this->baseDn,
+                    "(&(objectClass=".$this->authAccess['objectClass'].")(".$this->authAccess['attributeMatch']."=$username))",
+                    ['*']
+                );
+
+                $entry = $this->getFirstEntry($searchResult);
+                // $entry will be a resource OR False if not found
+                if($entry!==false){
+                    $authorized = true;
+                }
+
+            } catch (Exception $e) {
+                // Not trowing errors here...
+            }
+
+        return $authorized;
+        }
+
+        throw new \Exception('Invalid Ldap extension settings.', 0);
+
+    }
+
+    /**
+     * Reads a user data and checks if user has access to a cn.
+     * Ex: Check if user has access to a group.
+     *
+     * @return array defined `dnAttributes` (uid) OR empty if user does not have access
+     * @author WebsvcPT
+     * @since 1.0.5
+     */
+    public function checkAccessReturnUserdata(){
+
+        $userData = $this->readUserData();
+
+        if(empty($userData) || !$this->checkUserAccess($userData[$this->loginAttribute])) {
+            $userData = [];
+        }
+        return $userData;
+
+    }
+
+    /**
+     * Returns the string value of an element.
      * Elements are generally a one key array, this will retrieve the first key only
      *
      * @param string|array $value
@@ -325,7 +413,7 @@ class Connection extends Component
      * @throws \Exception
      */
     public function changePasswordAsUser($username, $oldPassword, $newPassword)
-    {        
+    {
         if (!$this->useTLS) {
             $message = 'TLS must be configured on your web server and enabled to change passwords.';
             throw new \Exception($message);
@@ -335,10 +423,10 @@ class Connection extends Component
         if(!$this->auth($username, $oldPassword)){
             return false;
         }
-        
+
         return $this->changePasswordAsManager($this->userDN, $newPassword);
     }
-    
+
     /**
      * Change the password of the user as manager. This must be performed over TLS.
      * @param string $userDN User Distinguished Names (DN) for change password. Ex.: cn=admin,dc=example,dc=com
@@ -347,21 +435,21 @@ class Connection extends Component
      * @throws \Exception
      */
     public function changePasswordAsManager($userDN, $newPassword)
-    {        
+    {
         if (!$this->useTLS) {
             $message = 'TLS must be configured on your web server and enabled to change passwords.';
             throw new \Exception($message);
         }
-        
+
         // Open connection with manager
         $this->open();
-        
+
         // Replace passowrd attribute for AD
         // The AD password change procedure is modifying the attribute unicodePwd
         $modifications['unicodePwd'] = self::encodePassword($newPassword);
         return ldap_mod_replace($this->resource, $userDN, $modifications);
     }
-    
+
     /**
      * Closes the current connection.
      *
@@ -388,32 +476,32 @@ class Connection extends Component
     {
         $this->open();
         $results = [];
-        $cookie = '';        
+        $cookie = '';
         $token = $function . ' - params: ' . LdapUtils::recursive_implode($params, ';');
 
         Yii::info($token , 'websvc\ldap\Connection::query');
-       
+
         Yii::beginProfile($token, 'websvc\ldap\Connection::query');
         do {
             if($this->pageSize > 0) {
                 $this->setControlPagedResult($cookie);
             }
-            
+
             // Run the search.
             $result = call_user_func($function, $this->resource, ...$params);
-            
+
             if($this->pageSize > 0) {
                 $this->setControlPagedResultResponse($result, $cookie);
             }
-            
+
             //Collect each resource result
-            $results[] = $result;            
+            $results[] = $result;
         } while (!is_null($cookie) && !empty($cookie));
         Yii::endProfile($token, 'websvc\ldap\Connection::query');
 
         return new DataReader($this, $results);
     }
-    
+
     /**
      * Returns true/false if the current connection is bound.
      * @return bool
@@ -422,7 +510,7 @@ class Connection extends Component
     {
         return $this->_bound;
     }
-    
+
     /**
      * Get the current resource of connection.
      * @return resource
@@ -431,7 +519,7 @@ class Connection extends Component
     {
         return $this->resource;
     }
-    
+
     /**
      * Sorts an AD search result by the specified attribute.
      * @param resource $result
@@ -482,7 +570,7 @@ class Connection extends Component
      * Batch modifies an existing entry on the current connection.
      * The types of modifications:
      *      LDAP_MODIFY_BATCH_ADD - Each value specified through values is added.
-     *      LDAP_MODIFY_BATCH_REMOVE - Each value specified through values is removed. 
+     *      LDAP_MODIFY_BATCH_REMOVE - Each value specified through values is removed.
      *          Any value of the attribute not contained in the values array will remain untouched.
      *      LDAP_MODIFY_BATCH_REMOVE_ALL - All values are removed from the attribute named by attrib.
      *      LDAP_MODIFY_BATCH_REPLACE - All current values are replaced by new one.
@@ -501,8 +589,8 @@ class Connection extends Component
     {
         $this->clearCache(DataReader::CACHE_TAG);
         return ldap_modify_batch($this->resource, $dn, $values);
-    }    
-    
+    }
+
     /**
      * Retrieve the entries from a search result.
      * @param resource $searchResult
@@ -512,7 +600,7 @@ class Connection extends Component
     {
         return ldap_get_entries($this->resource, $searchResult);
     }
-    
+
     /**
      * Retrieves the number of entries from a search result.
      * @param resource $searchResult
@@ -542,7 +630,7 @@ class Connection extends Component
     {
         return ldap_next_entry($this->resource, $entry);
     }
-    
+
     /**
      * Retrieves the ldap first entry attribute.
      * @param resource $entry
@@ -552,7 +640,7 @@ class Connection extends Component
     {
         return ldap_first_attribute($this->resource, $entry);
     }
-    
+
     /**
      * Retrieves the ldap next entry attribute.
      * @param resource $entry
@@ -572,7 +660,7 @@ class Connection extends Component
     {
         return ldap_get_attributes($this->resource, $entry);
     }
-    
+
     /**
      * Retrieves all binary values from a result entry.
      * @param resource $entry link identifier
@@ -583,7 +671,7 @@ class Connection extends Component
     {
         return ldap_get_values_len($this->resource, $entry, $attribute);
     }
-    
+
     /**
      * Retrieves the DN of a result entry.
      * @param resource $entry
@@ -623,7 +711,7 @@ class Connection extends Component
     {
         return ldap_start_tls($this->resource);
     }
-    
+
     /**
      * Send LDAP pagination control.
      * @param int    $pageSize
@@ -646,7 +734,7 @@ class Connection extends Component
     {
         return ldap_control_paged_result_response($this->resource, $result, $cookie);
     }
-       
+
     /**
      * Retrieve the last error on the current connection.
      * @return string
@@ -655,7 +743,7 @@ class Connection extends Component
     {
         return ldap_error($this->resource);
     }
-    
+
     /**
      * Returns the number of the last error on the current connection.
      * @return int

@@ -14,6 +14,10 @@ Only to have some maintainability over the code and have a production release of
 
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/chrmorandi/yii2-ldap/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/chrmorandi/yii2-ldap/?branch=master)
 
+## Changelog
+
+[See Changelog ](CHANGELOG.md)
+
 Requirements
 ------------
 
@@ -22,8 +26,7 @@ To use yii2-ldap, your sever must support:
 PHP LDAP Extension
 
 
-Installation
-------------
+## Installation
 
 The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
 
@@ -41,8 +44,8 @@ or add
 
 to the require section of your composer.json.
 
-Configuration
--------------
+## Configuration
+
 ```php
 return [
     //....
@@ -66,13 +69,19 @@ return [
             // ldap_search(): Partial search results returned: Sizelimit exceeded
             'pageSize'        => -1,
             // Change the attribute to use for login
-            //'loginAttribute'        => 'uid',
+            'loginAttribute'        => 'uid',
+            // for check if user has access to application
+            'authAccess'      => [
+                'cn' => 'cn=restricted,ou=Groups',  // Cn name, will be concatenated with baseDn
+                'objectClass' => 'posixGroup',      // object class to search
+                'attributeMatch' => 'memberUid',    // attribute to match user
+            ]
         ],
     ]
 ];
 ```
 
-## Authenticating Users
+### Authente User
 
 To authenticate users using your AD server, call the `Yii::$app->ldap->auth()`
 method on your provider:
@@ -84,8 +93,40 @@ try {
     } else {
         // Credentials were incorrect.
     }
-    } catch (Exception $e) {            
+    } catch (Exception $e) {
         // error
     }
+}
+```
+
+### Authenticate User, check access and retrieve user data
+
+To authenticate users using your AD server, call the `Yii::$app->ldap->auth()`
+method on your provider:
+
+```php
+try {
+    $ldap = Yii::$app->ldap;
+
+    if($ldap->auth($this->username, $this->password)) { //Yii loginform username/password
+
+        $user_data = $ldap->checkAccessReturnUserdata();
+
+        if( !empty($user_data)){
+
+            if ($this->_user === null) {
+                // Do your magic
+                echo '<pre>';
+                print_r($user_data);
+                echo '</pre>';
+            }
+        }
+    } else {
+        // Credentials were incorrect.
+        // Will not return anything
+    }
+} catch (Exception $e) {
+    // error
+    // Will not return anything
 }
 ```
